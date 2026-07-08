@@ -1,0 +1,24 @@
+# Environment files
+client/.env
+server/.env
+worker/.env
+
+# Or ignore all .env files
+**/.env
+
+# Dependencies
+client/node_modules/
+server/node_modules/
+worker/node_modules
+
+# Logs
+*.log
+
+# Build folders
+client/dist/
+server/dist/
+worker/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
