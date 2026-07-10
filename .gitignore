@@ -9,7 +9,7 @@ worker/.env
 # Dependencies
 client/node_modules/
 server/node_modules/
-worker/node_modules
+worker/node_modules/
 
 # Logs
 *.log

@@ -1,0 +1,26 @@
+info:
+  name: API Testing
+  type: http
+
+http:
+  method: POST
+  url: http://localhost:3000/submission
+  headers:
+    - name: Content-Type
+      value: application/json
+      disabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "userId": "1", 
+        "code": "#include <iostream>\nusing namespace std;\nint main() { cout << \"hi\";return 0;}",
+        "language": "c++"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
