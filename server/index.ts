@@ -36,7 +36,17 @@ app.post("/submission", async (req, res) => {
 }); 
 
 
-app.get("/submission/:submisssionId", (req, res) => {
+app.get("/submission/:submisssionId", async (req, res) => {
+
+    const response = await prisma.submissions.findFirst({
+        where: {
+            id: req.params.submisssionId
+        }
+    });
+
+    res.json({
+        submission: response
+    });
 
 });
 

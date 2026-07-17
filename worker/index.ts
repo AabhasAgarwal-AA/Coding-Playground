@@ -3,6 +3,7 @@ import { createClient } from "redis";
 import fs from "fs";
 import { spawn } from "child_process";
 import { prisma } from "./db";
+import { exitCode } from "process";
 
 const client = createClient({
     url: process.env.REDIS_URL,
@@ -31,7 +32,29 @@ client.connect()
                 const filePath = __dirname + "/code/a.cpp";
 
                 fs.writeFileSync(filePath, code);
-                spawn("g++", [filePath, "-o", "./code/out"]);
+                const responseCompiler = spawn("g++", [filePath, "-o", "./code/out"]);
+                let exitCodeCompiler = null;
+                await new Promise<void>(resolve => {
+                    responseCompiler.on("exit", async (exitCode) => {
+                        exitCodeCompiler = exitCode;
+                        if (exitCode !== 0) {
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId
+                                }, data: {
+                                    status: "Failure"
+                                }
+
+                            })
+                        }
+                        resolve();
+                    })
+                });
+
+                if(exitCodeCompiler !== 0){
+                    continue;
+                }
+
                 await new Promise((r) => setTimeout(r, 2000));
 
                 const response = spawn("./code/out");
@@ -41,17 +64,30 @@ client.connect()
                 });
 
                 await new Promise<void>(resolve => {
-                    response.on("exit", async () => {
-                        await prisma.submissions.update({
-                            where: {
-                                id: submissionId,
-                            },
-                            data: {
-                                status: "Success",
-                                output: finalOutput
+                    response.on("exit", async (exitCode) => {
+                        if(exitCode === 0){
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId,
+                                },
+                                data: {
+                                    status: "Success",
+                                    output: finalOutput
 
-                            }
-                        })
+                                }
+                            })
+                        } else {
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId,
+                                },
+                                data: {
+                                    status: "Failure",
+                                }
+                            })
+                        }
+
+                        
                     });
                     resolve();
                 });
@@ -70,17 +106,28 @@ client.connect()
                 });
 
                 await new Promise<void>(resolve => {
-                    response.on("exit", async () => {
-                        await prisma.submissions.update({
-                            where: {
-                                id: submissionId,
-                            },
-                            data: {
-                                status: "Success",
-                                output: finalOutput
-
-                            }
-                        })
+                    response.on("exit", async (exitCode) => {
+                        if(exitCode === 0){
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId,
+                                },
+                                data: {
+                                    status: "Success",
+                                    output: finalOutput
+                                }
+                            })
+                        } else {
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId,
+                                },
+                                data: {
+                                    status: "Failure",
+                                }
+                            })
+                        }
+                        
                     });
                     resolve();
                 });
@@ -99,17 +146,28 @@ client.connect()
                 });
 
                 await new Promise<void>(resolve => {
-                    response.on("exit", async () => {
-                        await prisma.submissions.update({
-                            where: {
-                                id: submissionId,
-                            },
-                            data: {
-                                status: "Success",
-                                output: finalOutput
-
-                            }
-                        })
+                    response.on("exit", async (exitCode) => {
+                        if(exitCode === 0){
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId,
+                                },
+                                data: {
+                                    status: "Success",
+                                    output: finalOutput
+                                }
+                            })
+                        } else {
+                            await prisma.submissions.update({
+                                where: {
+                                    id: submissionId,
+                                },
+                                data: {
+                                    status: "Failure",
+                                }
+                            })
+                        }
+                        
                     });
                     resolve();
                 });
