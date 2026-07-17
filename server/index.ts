@@ -1,6 +1,7 @@
 import express from "express";
 import {createClient} from "redis";
 import { prisma } from "./db";
+import cors from "cors";
 
 const client = createClient({
     url: process.env.REDIS_URL,
@@ -11,6 +12,7 @@ client.connect();
 console.log("working");
 const app = express();
 app.use(express.json());
+app.use(cors())
 
 app.post("/submission", async (req, res) => {
     const userId = req.body.userId; 
