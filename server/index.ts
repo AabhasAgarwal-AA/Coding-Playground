@@ -40,16 +40,22 @@ app.post("/submission", async (req, res) => {
 
 app.get("/submission/:submisssionId", async (req, res) => {
 
-    const response = await prisma.submissions.findFirst({
-        where: {
-            id: req.params.submisssionId
-        }
-    });
+    try{
+        const response = await prisma.submissions.findFirst({
+            where: {
+                id: req.params.submisssionId
+            }
+        });
 
-    res.json({
-        submission: response
-    });
+        res.json({
+            submission: response
+        });
 
+    } catch (error) {
+        res.json({
+            message: "could not find the submission"
+        });
+    }
 });
 
 app.listen(3000);

@@ -10,6 +10,7 @@ export function App() {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [status, setStatus] = useState("");
   const [output, setOutput] = useState("");
+  const [stdErr, setStdErr] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("cpp");
 
   async function pollBackend(submissionId: string){
@@ -17,6 +18,7 @@ export function App() {
     if(response.data.submission.status !== "Processing"){
       setStatus(response.data.submission.status);
       setOutput(response.data.submission.output);
+      setStdErr(response.data.submission.stdErr);
     } else {
       await new Promise(r => setTimeout(r, 3000));
       pollBackend(submissionId);
@@ -36,6 +38,7 @@ export function App() {
             <Button onClick={async () => {
               setStatus("Processing");
               setOutput("");
+              setStdErr("");
               const response = await axios.post(`${BACKEND_URL}/submission`, {
                 "code": textAreaRef.current!.value, 
                 "language": selectedLanguage
@@ -58,6 +61,8 @@ export function App() {
       {status}
       <br />
       {output}
+      <br />
+      {stdErr}
 
     </div>
   

@@ -18,6 +18,7 @@ model Submissions {
   language    String 
   status      SubmissionsStatus
   output      String? 
+  stdErr      String?
 }
 
 enum SubmissionsStatus {

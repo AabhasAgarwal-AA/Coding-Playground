@@ -25,6 +25,7 @@ client.connect()
             const submissionId = parsedResponse.submissionId;
 
             let finalOutput = "";
+            let finalStdErr = "";
 
             if(language === "c++"){
                 console.log("running c++ code for the user");
@@ -34,6 +35,9 @@ client.connect()
                 fs.writeFileSync(filePath, code);
                 const responseCompiler = spawn("g++", [filePath, "-o", "./code/out"]);
                 let exitCodeCompiler = null;
+                responseCompiler.stderr.on("data", (chunk) => {
+                    finalStdErr += chunk.toString();
+                });
                 await new Promise<void>(resolve => {
                     responseCompiler.on("exit", async (exitCode) => {
                         exitCodeCompiler = exitCode;
@@ -42,7 +46,8 @@ client.connect()
                                 where: {
                                     id: submissionId
                                 }, data: {
-                                    status: "Failure"
+                                    status: "Failure", 
+                                    stdErr: finalStdErr
                                 }
 
                             })
@@ -61,6 +66,10 @@ client.connect()
 
                 response.stdout.on("data", (chunk) => {
                     finalOutput += chunk.toString();
+                });
+
+                response.stderr.on("data", (chunk) => {
+                    finalStdErr += chunk.toString();
                 });
 
                 await new Promise<void>(resolve => {
@@ -83,6 +92,7 @@ client.connect()
                                 },
                                 data: {
                                     status: "Failure",
+                                    stdErr: finalStdErr
                                 }
                             })
                         }
@@ -105,6 +115,10 @@ client.connect()
                     finalOutput += chunk.toString();
                 });
 
+                response.stderr.on("data", (chunk) => {
+                    finalStdErr += chunk.toString();
+                });
+
                 await new Promise<void>(resolve => {
                     response.on("exit", async (exitCode) => {
                         if(exitCode === 0){
@@ -124,6 +138,7 @@ client.connect()
                                 },
                                 data: {
                                     status: "Failure",
+                                    stdErr: finalStdErr
                                 }
                             })
                         }
@@ -143,6 +158,10 @@ client.connect()
                 response.stdout.on("data", (chunk) => {
                     finalOutput += chunk.toString();
 
+                });
+
+                response.stderr.on("data", (chunk) => {
+                    finalStdErr += chunk.toString();
                 });
 
                 await new Promise<void>(resolve => {
