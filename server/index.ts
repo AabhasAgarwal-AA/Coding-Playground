@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cors())
 
 app.post("/submission", async (req, res) => {
-    const userId = req.body.userId; 
+    // const userId = req.body.userId; 
     const code = req.body.code;
     const language = req.body.language; 
 
@@ -27,7 +27,7 @@ app.post("/submission", async (req, res) => {
         }
     });
     
-    client.lPush("problems", JSON.stringify({submissionid: response.id, code, language}));
+    client.lPush("problems", JSON.stringify({submissionId: response.id, code, language}));
 
     res.json({
         message: "processing",
@@ -38,12 +38,12 @@ app.post("/submission", async (req, res) => {
 }); 
 
 
-app.get("/submission/:submisssionId", async (req, res) => {
+app.get("/submission/:submissionId", async (req, res) => {
 
     try{
         const response = await prisma.submissions.findFirst({
             where: {
-                id: req.params.submisssionId
+                id: req.params.submissionId
             }
         });
 

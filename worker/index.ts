@@ -3,7 +3,6 @@ import { createClient } from "redis";
 import fs from "fs";
 import { spawn } from "child_process";
 import { prisma } from "./db";
-import { exitCode } from "process";
 
 const client = createClient({
     url: process.env.REDIS_URL,
@@ -24,10 +23,12 @@ client.connect()
             const language = parsedResponse.language; 
             const submissionId = parsedResponse.submissionId;
 
+            console.log("processing question for user " + parsedResponse.submissionId);
+
             let finalOutput = "";
             let finalStdErr = "";
 
-            if(language === "c++"){
+            if(language === "cpp"){
                 console.log("running c++ code for the user");
                 
                 const filePath = __dirname + "/code/a.cpp";
@@ -98,8 +99,8 @@ client.connect()
                         }
 
                         
+                        resolve();
                     });
-                    resolve();
                 });
 
             }
@@ -143,8 +144,8 @@ client.connect()
                             })
                         }
                         
+                        resolve();
                     });
-                    resolve();
                 });
             }
 
@@ -187,11 +188,12 @@ client.connect()
                             })
                         }
                         
+                        resolve();
                     });
-                    resolve();
                 });
 
             }
 
         }
     });
+
