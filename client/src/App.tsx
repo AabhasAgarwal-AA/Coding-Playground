@@ -1,72 +1,166 @@
-import axios from "axios";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Code2, LoaderCircle, Play, RotateCcw } from "lucide-react";
 import { Button } from "./components/ui/button";
-import { Textarea } from "./components/ui/textarea";
+import { LanguageSelect } from "./components/playground/language-select";
+import { OutputPanel } from "./components/playground/output-panel";
+import { SyntaxEditor } from "./components/playground/syntax-editor";
+import { useCodeRunner } from "./hooks/use-code-runner";
+import { getLanguageDetails, initialCode, type Language } from "./lib/languages";
 import "./index.css";
-import { useRef, useState } from "react";
-
-const BACKEND_URL = "http://localhost:3000"
 
 export function App() {
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const [status, setStatus] = useState("");
-  const [output, setOutput] = useState("");
-  const [stdErr, setStdErr] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("cpp");
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>("cpp");
 
-  async function pollBackend(submissionId: string){
-    const response = await axios.get(`${BACKEND_URL}/submission/${submissionId}`);
-    if(response.data.submission.status !== "Processing"){
-      setStatus(response.data.submission.status);
-      setOutput(response.data.submission.output);
-      setStdErr(response.data.submission.stdErr);
-    } else {
-      await new Promise(r => setTimeout(r, 3000));
-      pollBackend(submissionId);
+  const [sourceFiles, setSourceFiles] = useState<Record<Language, string>>(initialCode);
+
+  const {
+    status,
+    output,
+    stdErr,
+    isRunning,
+    executionTime,
+    runCode,
+    resetResult,
+  } = useCodeRunner();
+
+  const code = sourceFiles[selectedLanguage];
+
+  const languageDetails = useMemo(
+    () => getLanguageDetails(selectedLanguage),
+    [selectedLanguage],
+  );
+
+  const lineCount = useMemo(
+    () => Math.max(code.split("\n").length, 1),
+    [code],
+  );
+
+  const updateCode = useCallback(
+    (nextCode: string) => {
+      setSourceFiles((currentFiles) => ({
+        ...currentFiles,
+        [selectedLanguage]: nextCode,
+      }));
+    },
+    [selectedLanguage],
+  );
+
+  const handleRun = useCallback(() => {
+    void runCode(code, selectedLanguage);
+  }, [code, runCode, selectedLanguage]);
+
+  const handleReset = useCallback(() => {
+    setSourceFiles((currentFiles) => ({
+      ...currentFiles,
+      [selectedLanguage]: initialCode[selectedLanguage],
+    }));
+
+    resetResult();
+  }, [resetResult, selectedLanguage]);
+
+  useEffect(() => {
+    function handleKeyboardShortcut(
+      event: globalThis.KeyboardEvent,
+    ) {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "Enter"
+      ) {
+        event.preventDefault();
+        handleRun();
+      }
     }
-  }
+
+    window.addEventListener(
+      "keydown",
+      handleKeyboardShortcut,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleKeyboardShortcut,
+      );
+    };
+  }, [handleRun]);
+
+  const keyboardShortcut =
+    typeof navigator !== "undefined" &&
+      navigator.platform.toLowerCase().includes("mac")
+      ? "⌘ ↵"
+      : "Ctrl ↵";
 
   return (
-  <div className="h-screen w-screen flex m-4">
-    <div className="flex-1 h-screen">
-      <div className="flex justify-between">
-        <div>
-          <Button variant={selectedLanguage === "cpp" ? "destructive": "outline"} onClick={() => setSelectedLanguage("cpp")}>CPP</Button>
-          <Button variant={selectedLanguage === "js" ? "destructive" : "outline"} onClick={() => setSelectedLanguage("js")}>JS</Button>
-          <Button variant={selectedLanguage === "py" ? "destructive" : "outline"} onClick={() => setSelectedLanguage("py")}>PY</Button>
-        </div>
-          <div>
-            <Button onClick={async () => {
-              setStatus("Processing");
-              setOutput("");
-              setStdErr("");
-              const response = await axios.post(`${BACKEND_URL}/submission`, {
-                "code": textAreaRef.current!.value, 
-                "language": selectedLanguage
-              });
-
-              pollBackend(response.data.id);
-
-            }}>Submit</Button>
+    <main className="app-shell">
+      <header className="topbar">
+        <div className="brand">
+          <div className="brand-mark" aria-hidden="true">
+            <Code2 size={18} strokeWidth={2} />
           </div>
-      </div>
-      
-      <Textarea ref={textAreaRef} className="h-screen w-full border rounded m-4 p-4 border-black" rows={500}>
 
-      </Textarea>
-        
+          <div className="brand-copy">
+            <span className="brand-name">Playground</span>
+            <span className="brand-environment">
+              Local workspace
+            </span>
+          </div>
+        </div>
 
-    </div>
-    
-    <div className="flex-1 h-screen bg-green-300">
-      {status}
-      <br />
-      {output}
-      <br />
-      {stdErr}
+        <div className="topbar-actions">
+          <div className="server-status">
+            <span className="server-status-dot" />
+            Execution server
+          </div>
 
-    </div>
-  
-  </div>)
+          <Button type="button" variant="ghost" className="reset-button" onClick={handleReset} disabled={isRunning}>
+            <RotateCcw size={15} />
+            <span>Reset</span>
+          </Button>
+
+          <Button type="button" className="run-button" onClick={handleRun} disabled={isRunning || !code.trim()}>
+            {isRunning ? (
+              <LoaderCircle className="animate-spin" size={16} />
+            ) : (
+              <Play size={16} fill="currentColor" />
+            )}
+
+            {isRunning ? "Running" : "Run code"}
+
+            <kbd className="run-shortcut">
+              {keyboardShortcut}
+            </kbd>
+          </Button>
+        </div>
+      </header>
+
+      <section className="workspace">
+        <section className="panel editor-panel">
+          <div className="panel-header">
+            <div className="file-tab">
+              <span
+                className={`language-dot language-${selectedLanguage}`}
+              />
+              <span>{languageDetails.filename}</span>
+            </div>
+
+            <LanguageSelect value={selectedLanguage} onChange={setSelectedLanguage} disabled={isRunning} />
+          </div>
+
+          <SyntaxEditor value={code} language={selectedLanguage} onChange={updateCode} disabled={isRunning} />
+
+          <footer className="panel-footer">
+            <span>{languageDetails.label}</span>
+            <span>Spaces: 2</span>
+            <span>
+              {lineCount} {lineCount === 1 ? "line" : "lines"}
+            </span>
+          </footer>
+        </section>
+
+        <OutputPanel status={status} output={output} stdErr={stdErr} isRunning={isRunning} executionTime={executionTime} />
+      </section>
+    </main>
+  );
 }
 
 export default App;
