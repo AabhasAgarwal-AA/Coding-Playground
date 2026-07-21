@@ -1,0 +1,17 @@
+{
+  "name": "e2b-template",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@e2b/cli": "^2.13.3",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "e2b:build:dev": "cd coding-playground && npx tsx build.dev.ts",
+    "e2b:build:prod": "cd coding-playground && npx tsx build.prod.ts"
+  }
+}
