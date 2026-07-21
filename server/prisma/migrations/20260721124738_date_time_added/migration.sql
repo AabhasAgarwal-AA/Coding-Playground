@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Submissions" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "updatedAt" TIMESTAMP(3),
+ALTER COLUMN "status" SET DEFAULT 'Processing';

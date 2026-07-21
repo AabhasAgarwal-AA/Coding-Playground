@@ -12,13 +12,16 @@ datasource db {
   provider = "postgresql"
 }
 
+
 model Submissions {
   id          String      @id         @default(uuid())
   code        String
   language    String 
-  status      SubmissionsStatus
+  status      SubmissionsStatus       @default(Processing)
   output      String? 
   stdErr      String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime?          @updatedAt
 }
 
 enum SubmissionsStatus {
