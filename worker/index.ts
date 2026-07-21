@@ -30,7 +30,13 @@ async function execute(command: string, args: string[]){
         stdout: string; 
         stderr: string; 
     }>((resolve) => {
-        const child = spawn(command, args); 
+        // const child = spawn(command, args); 
+        const child = spawn(command, args, {
+            env: {
+                PATH: "/usr/local/bin:/usr/bin:/bin",
+                LANG: "C.UTF-8",
+            },
+        });
         let stdout = "";
         let stderr = "";
 
